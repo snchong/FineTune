@@ -26,6 +26,10 @@ struct AppRowControls: View {
     @State private var dragOverrideValue: Double?
     @State private var isEQButtonHovered = false
 
+    private var isAppControlled: Bool {
+        deviceSelectionMode == .appControlled
+    }
+
     private var sliderValue: Double {
         dragOverrideValue ?? VolumeMapping.gainToSlider(volume, maxBoost: maxVolumeBoost)
     }
@@ -55,6 +59,8 @@ struct AppRowControls: View {
                     onMuteChange(true)
                 }
             }
+            .disabled(isAppControlled)
+            .opacity(isAppControlled ? 0.4 : 1.0)
 
             // Volume slider
             LiquidGlassSlider(
@@ -77,7 +83,8 @@ struct AppRowControls: View {
                 }
             )
             .frame(width: DesignTokens.Dimensions.sliderWidth)
-            .opacity(showMutedIcon ? 0.5 : 1.0)
+            .opacity(showMutedIcon ? 0.5 : isAppControlled ? 0.4 : 1.0)
+            .disabled(isAppControlled)
 
             // Editable volume percentage
             EditablePercentage(
@@ -93,9 +100,12 @@ struct AppRowControls: View {
                 ),
                 range: 0...Int(round(maxVolumeBoost * 100))
             )
+            .disabled(isAppControlled)
+            .opacity(isAppControlled ? 0.4 : 1.0)
 
             // VU Meter
             VUMeter(level: audioLevel, isMuted: showMutedIcon)
+                .opacity(isAppControlled ? 0.4 : 1.0)
 
             // Device picker
             DevicePicker(
@@ -139,6 +149,8 @@ struct AppRowControls: View {
             .help(isEQExpanded ? "Close Equalizer" : "Equalizer")
             .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isEQExpanded)
             .animation(DesignTokens.Animation.hover, value: isEQButtonHovered)
+            .disabled(isAppControlled)
+            .opacity(isAppControlled ? 0.4 : 1.0)
         }
         .frame(width: DesignTokens.Dimensions.controlsWidth)
     }

@@ -3,8 +3,9 @@ import Foundation
 
 /// Device selection mode for an app's audio output
 enum DeviceSelectionMode: String, Codable, Equatable {
-    case single  // Route to one device (default)
-    case multi   // Route to multiple devices simultaneously
+    case single         // Route to one device (default)
+    case multi          // Route to multiple devices simultaneously
+    case appControlled  // Let the app choose its own output device
 }
 
 /// Consolidated state for a single app's audio settings

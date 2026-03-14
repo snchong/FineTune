@@ -1,7 +1,7 @@
 // FineTune/Views/Components/ModeToggle.swift
 import SwiftUI
 
-/// A segmented control for switching between single and multi device modes
+/// A segmented control for switching between single, multi, and app-controlled device modes
 struct ModeToggle: View {
     @Binding var mode: DeviceSelectionMode
 
@@ -9,7 +9,8 @@ struct ModeToggle: View {
 
     private let options: [(mode: DeviceSelectionMode, label: String)] = [
         (.single, "Single"),
-        (.multi, "Multi")
+        (.multi, "Multi"),
+        (.appControlled, "App")
     ]
 
     var body: some View {
@@ -72,6 +73,7 @@ struct ModeToggle: View {
         VStack(spacing: DesignTokens.Spacing.lg) {
             ModeToggle(mode: .constant(.single))
             ModeToggle(mode: .constant(.multi))
+            ModeToggle(mode: .constant(.appControlled))
         }
         .frame(width: 180)
     }
@@ -87,7 +89,7 @@ struct ModeToggle: View {
                     ModeToggle(mode: $mode)
                         .frame(width: 180)
 
-                    Text("Current: \(mode == .single ? "Single" : "Multi")")
+                    Text("Current: \(mode == .single ? "Single" : mode == .multi ? "Multi" : "App Controlled")")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

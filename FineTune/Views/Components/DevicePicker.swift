@@ -72,6 +72,8 @@ struct DevicePicker: View {
                 return singleModeText
             }
             return "\(count) device\(count == 1 ? "" : "s")"
+        case .appControlled:
+            return "App Controlled"
         }
     }
 
@@ -99,6 +101,9 @@ struct DevicePicker: View {
                 Image(systemName: "speaker.wave.2.fill")
                     .font(.system(size: 13))
             }
+        case .appControlled:
+            Image(systemName: "app.connected.to.app.below.fill")
+                .font(.system(size: 13))
         }
     }
 
@@ -209,6 +214,31 @@ struct DevicePicker: View {
                     .padding(.horizontal, 6)
             }
 
+            // Info message for app-controlled mode
+            if currentMode == .appControlled {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                        Text("App Controlled")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.primary)
+                    }
+                    Text("The app chooses its own audio device. Volume control is disabled.")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(10)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.accentColor.opacity(0.1))
+                )
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+            }
+
             // Device list
             ScrollView(.vertical, showsIndicators: false) {
                 LazyVStack(spacing: itemSpacing) {
@@ -237,7 +267,7 @@ struct DevicePicker: View {
     @ViewBuilder
     private func deviceRow(for item: MenuItem) -> some View {
         let isSystemAudio = item.id == "__system_audio__"
-        let isDisabled = currentMode == .multi && isSystemAudio
+        let isDisabled = (currentMode == .multi && isSystemAudio) || currentMode == .appControlled
         let isSelected = isItemSelected(item)
 
         DevicePickerRow(
@@ -271,6 +301,8 @@ struct DevicePicker: View {
                 return currentSelectedUIDs.contains(device.uid)
             }
             return false  // System Audio not selectable in multi mode
+        case .appControlled:
+            return false  // No selection in app-controlled mode
         }
     }
 
@@ -298,6 +330,11 @@ struct DevicePicker: View {
             currentSelectedUIDs = newSelection  // Update local state immediately
             onDevicesSelected(newSelection)  // Notify parent
             // Stay open in multi mode
+            
+        case .appControlled:
+            // In app-controlled mode, don't allow device selection
+            // User can only change mode via ModeToggle
+            break
         }
     }
 }

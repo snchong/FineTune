@@ -683,6 +683,15 @@ final class AudioEngine {
                 return
             }
             deviceUIDs = selectedUIDs
+            
+        case .appControlled:
+            // App controls its own output device - remove any tap we may have created
+            if let tap = taps[app.id] {
+                logger.info("Removing tap for \(app.name) - app is now controlling its own audio device")
+                tap.invalidate()
+                taps.removeValue(forKey: app.id)
+            }
+            return
         }
 
         // Update or create tap with the device set
@@ -751,13 +760,29 @@ final class AudioEngine {
         for app in apps {
             guard !appliedPIDs.contains(app.id) else { continue }
 
-            // Load saved device selection mode (single vs multi)
+            // Load saved device selection mode (single vs multi vs appControlled)
             let savedMode = volumeState.loadSavedDeviceSelectionMode(for: app.id, identifier: app.persistenceIdentifier)
             let mode = savedMode ?? .single
 
             // Load saved volume and mute state
             let savedVolume = volumeState.loadSavedVolume(for: app.id, identifier: app.persistenceIdentifier)
             let savedMute = volumeState.loadSavedMute(for: app.id, identifier: app.persistenceIdentifier)
+
+            // Handle app-controlled mode - skip tap creation entirely
+            if mode == .appControlled {
+                logger.info("\(app.name) is set to app-controlled mode - skipping tap creation")
+                appliedPIDs.insert(app.id)
+                
+                // Still apply volume and mute to VolumeState for UI consistency
+                // (though without a tap, these won't affect actual audio)
+                if let volume = savedVolume {
+                    volumeState.setVolume(for: app.id, to: volume, identifier: app.persistenceIdentifier)
+                }
+                if let muted = savedMute {
+                    volumeState.setMute(for: app.id, to: muted, identifier: app.persistenceIdentifier)
+                }
+                continue
+            }
 
             // Handle multi-device mode
             if mode == .multi {
